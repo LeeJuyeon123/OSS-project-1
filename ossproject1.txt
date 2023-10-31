@@ -1,0 +1,245 @@
+echo "--------------------------"
+echo "User name: LeeJuyeon"
+echo "Student Number: 12203788"
+echo "[ MENU ]"
+echo "1. Get the data of the movie identified by a specific 'movie id' from 'u.item'"
+echo "2. Get the data of action genre movies from 'u.item\u2019"
+echo "3. Get the average 'rating\u2019 of the movie identified by specific 'movie id' from 'u.data\u2019"
+echo "4. Delete the \u2018IMDb URL\u2019 from \u2018u.item'"
+echo "5. Get the data about users from 'u.user\u2019"
+echo "6. Modify the format of 'release date' in 'u.item\u2019"
+echo "7. Get the data of movies rated by a specific 'user id' from 'u.data'"
+echo "8. Get the average 'rating' of movies rated by users with 'age' between 20 and 29 and 'occupation' as 'programmer'"
+echo "9. Exit"
+echo "--------------------------"
+
+
+echo -n "Enter your choice [ 1-9 ] "
+read choice
+echo ""
+
+while [ $choice -ne 9 ]
+do
+  if [ "$choice" -eq "1" ]
+  then
+    echo -n "Please enter the 'movie id'(1~1682): "
+    read number
+    echo ""
+    awk -F"|" -v num="$number" '{ if($1 == num) {print}}' ./u.item
+
+
+  elif [ "$choice" -eq "2" ]
+  then
+    echo -n "Do you want to delete the IMDb URL from 'u.item'?(y/n):"
+    read choice_two
+    echo ""
+
+    if [ "$choice_two" == "y" ]
+    then
+      awk -F"|" '{if(count < 10) { if($7 == "1"){ {count ++} { print $1, $2}}}}' ./u.item
+
+    fi
+
+  elif [ "$choice" -eq "3" ]
+  then
+    echo -n "Please enter the 'movie id\u2019(1~1682): "
+    read number
+    echo ""
+
+    awk -v num="$number" '{ if($2 == num) {sum += $3; count++}} END {print "average rating of", num,":",  sum/count}' ./u.data
+
+  elif [ "$choice" -eq "4" ]
+  then
+    echo -n "Do you want to delete the IMDb URL from 'u.item'?(y/n):"
+    read choice_four
+    echo ""
+
+    if [ "$choice_four" == "y" ]
+    then
+            sed -n '1,10s/http.*)//p' ./u.item
+    fi
+
+  elif [ "$choice" -eq "5" ]
+  then
+    echo -n "Do you want to get the data about users from 'u.user'?(y/n):"
+    read choice_five
+    echo ""
+
+    if [ "$choice_five" == "y" ]
+    then
+      awk -F"|" '{if($1 <= 10)  { if($3 == "M") {gender = "male"} else {gender = "female"} { print "user",$1, "is", $2, "year old", gender, $4}}}' ./u.user
+    fi
+
+  elif [ "$choice" -eq "6" ]
+  then
+
+    echo -n "Do you want to delete the IMDb URL from 'u.item'?(y/n):"
+    read choice_six
+    echo ""
+
+    if [ "$choice_six" == "y" ]
+    then
+
+     movie_list_str=$(echo | awk -F "|" '{ if( $1 >= 1673 && $1 <= 1682) {print $3} }'   ./u.item)
+     movie_list=($(echo $movie_list_str | tr " " "\n"))
+      for var in {0..9}
+      do
+        movie_now=${movie_list[$var]}
+        movie_split=($(echo $movie_now | tr "-" "\n"))
+
+        month=${movie_split[1]}
+        result=""
+
+        case $month in
+          Jan) result=${movie_split[2]}"01"${movie_split[0]};;
+          Feb) result=${movie_split[2]}"02"${movie_split[0]};;
+          Mar) result=${movie_split[2]}"03"${movie_split[0]};;
+          Apr) result=${movie_split[2]}"04"${movie_split[0]};;
+          May) result=${movie_split[2]}"05"${movie_split[0]};;
+          Jun) result=${movie_split[2]}"06"${movie_split[0]};;
+          Jul) result=${movie_split[2]}"07"${movie_split[0]};;
+          Aug) result=${movie_split[2]}"08"${movie_split[0]};;
+          Sep) result=${movie_split[2]}"09"${movie_split[0]};;
+          Oct) result=${movie_split[2]}"10"${movie_split[0]};;
+          Nov) result=${movie_split[2]}"11"${movie_split[0]};;
+          Dec) result=${movie_split[2]}"12"${movie_split[0]};;
+        esac
+
+        index=$((${var} + 1673))
+
+        awk -F "|" -v movie="${result}" -v i="${index}" 'NR==i {
+        for(j=1; j<=2; j++){printf $j; printf "|"}
+          {printf movie}
+          {printf "|"}
+          for(j=4; j<=NF; j++){printf "%s", $j; printf "|"}
+          {print $NF}
+        }' ./u.item
+
+      done
+    fi
+
+  elif [ "$choice" -eq "7" ]
+  then
+    echo -n "Please enter the 'user id'(1~943) :"
+    read userId
+    echo ""
+
+    movie_list_str=$(echo | awk -F " " -v  userId="$userId"  'BEGIN{count=0} {if($1 == userId) { {movie_list[count]=$2} {count++}  }} END { {}  {for (i in movie_list) print movie_list[i]} }' ./u.data)
+
+    movie_list_split=$(echo $movie_list_str | tr " " "\n")
+    movie_list=()
+
+    for movie_id in $movie_list_split
+    do
+            movie_list+=("$movie_id")
+    done
+
+    sorted_list=(`for item in "${movie_list[@]}"; do echo "$item"; done | sort -n`)
+
+    for i in "${sorted_list[@]}"
+    do
+            echo -n "$i | "
+    done
+
+    echo " "
+    echo " "
+
+    count=0
+    while [ $count -lt 10 ]
+    do
+      movie_now=${sorted_list[count]}
+
+      awk -F"|" -v num="$movie_now" '{ if($1 == num) {print $1 " | " $2}}' ./u.item
+
+      count=`expr $count + 1`
+    done
+
+  elif [ "$choice" -eq "8" ]
+  then
+    echo -n "Do you want to get the average 'rating' of movies rated by users with 'age' between 20 and 29 and 'occupation' as 'programmer'?(y/n):"
+    read choice_eight
+    echo ""
+
+    if [ "$choice_eight" == "y" ]
+    then
+      programmer_list_str=$(echo | awk -F "|" 'BEGIN{count=0}  
+       { if($2 >= 20 && $2 <= 29){
+          if($4=="programmer"){
+            programmer_list[count]=$1;
+            count++;
+          }      
+        } }
+       END{{for (i in programmer_list) print programmer_list[i]}}
+        ' ./u.user)
+
+      programmer_list=$(echo $programmer_list_str | tr " " "\n")
+
+      for var in {0..1684}
+      do
+              rating[$var]=0
+              count[$var]=0
+      done
+
+      for programmer in $programmer_list
+      do
+        rating_list_str=$(echo | awk -F " " -v programmer="$programmer" '{  
+          if($1 == programmer){
+            arr[count]+=$3;
+            count++;
+          }}
+          END{for (i in arr) print arr[i]}        
+        ' ./u.data)
+
+        rating_list=($(echo $rating_list_str | tr " " "\n"))
+
+        count_list_str=$(echo | awk -F " " -v programmer="$programmer" '{  
+          if($1 == programmer){
+            arr[count]+=1;
+            count++;
+          }}
+          END{for (i in arr) print arr[i]}          
+        ' ./u.data)
+
+        count_list=($(echo $count_list_str | tr " " "\n"))
+
+        index_list_str=$(echo | awk -F " " -v programmer="$programmer" '{  
+          if($1 == programmer){
+             arr[count]+=$2;
+             count++;
+          }}
+          END{for (i in arr) print arr[i]}
+        ' ./u.data)
+
+        index_list=($(echo $index_list_str | tr " " "\n"))
+
+        arr_length=${#index_list[@]}
+        for (( i=0; i<${arr_length}; i++));
+        do
+          index_now=${index_list[$i]}
+          rating[$index_now]=$((${rating[$index_now]}+${rating_list[$i]}))
+          count[$index_now]=$((${count[$index_now]}+${count_list[$i]}))
+        done
+      done
+
+      rating_length=${#rating[@]}
+      for (( i=1; i<${rating_length}; i++));
+      do
+
+        if [ ${count[$i]} != 0 ]
+        then
+          echo -n "$i "
+          result=$(echo "scale=5; ${rating[$i]} / ${count[$i]}" | bc)
+          echo "$result"
+          #echo ${rating[$i]} ${count[$i]} | awk '{printf "%.5f", $1 / $2}'
+        fi
+      done
+    fi
+  fi
+
+  echo ""
+  echo -n "Enter your choice [ 1-9 ] "
+  read choice
+  echo ""
+done
+
+echo "BYE!"
