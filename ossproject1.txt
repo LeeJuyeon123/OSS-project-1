@@ -1,6 +1,6 @@
 echo "--------------------------"
 echo "User name: LeeJuyeon"
-echo "Student Number: 12203788"
+echo "Student Number: 12223788"
 echo "[ MENU ]"
 echo "1. Get the data of the movie identified by a specific 'movie id' from 'u.item'"
 echo "2. Get the data of action genre movies from 'u.item\u2019"
